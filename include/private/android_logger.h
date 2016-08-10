@@ -29,6 +29,10 @@
 
 #define LOGGER_MAGIC 'l'
 
+#ifdef MOE_WINDOWS
+#pragma pack(push, 1)
+#endif
+
 /* Header Structure to pstore */
 typedef struct __attribute__((__packed__)) {
     uint8_t magic;
@@ -97,6 +101,10 @@ typedef struct __attribute__((__packed__)) {
     int32_t length; // Little Endian Order
     char data[];
 } android_log_event_string_t;
+
+#ifdef MOE_WINDOWS
+#pragma pack(pop)
+#endif
 
 #if defined(__cplusplus)
 extern "C" {

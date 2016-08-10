@@ -19,7 +19,9 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#ifndef MOE
 #include <ucontext.h>
+#endif
 
 #include <string>
 
@@ -28,8 +30,10 @@
 
 #include "BacktraceCurrent.h"
 
+#ifndef MOE_WINDOWS
 #define UNW_LOCAL_ONLY
 #include <libunwind.h>
+#endif
 
 class UnwindCurrent : public BacktraceCurrent {
 public:
@@ -43,7 +47,9 @@ private:
 
   bool UnwindFromContext(size_t num_ignore_frames, ucontext_t* ucontext) override;
 
+#ifndef MOE_WINDOWS
   unw_context_t context_;
+#endif
 };
 
 #endif // _LIBBACKTRACE_UNWIND_CURRENT_H

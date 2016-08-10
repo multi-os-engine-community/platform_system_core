@@ -15,7 +15,9 @@
 */
 
 #include <errno.h>
+#ifndef MOE_WINDOWS
 #include <fcntl.h>
+#endif
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +31,7 @@
 
 #include <cutils/sockets.h>
 
+#ifndef MOE_WINDOWS
 static int toggle_O_NONBLOCK(int s) {
     int flags = fcntl(s, F_GETFL);
     if (flags == -1 || fcntl(s, F_SETFL, flags ^ O_NONBLOCK) == -1) {
@@ -37,6 +40,12 @@ static int toggle_O_NONBLOCK(int s) {
     }
     return s;
 }
+#else
+static int setBlocking(int s, bool blocking) {
+    u_long value = blocking ? 0 : 1;
+    return ioctlsocket((SOCKET)s, FIONBIO, &value) == 0 ? s : -1;
+}
+#endif
 
 // Connect to the given host and port.
 // 'timeout' is in seconds (0 for no timeout).
@@ -70,11 +79,20 @@ int socket_network_client_timeout(const char* host, int port, int type, int time
 
     // The Mac doesn't have SOCK_NONBLOCK.
     int s = socket(family, type, protocol);
+#ifndef MOE_WINDOWS
     if (s == -1 || toggle_O_NONBLOCK(s) == -1) return -1;
+#else
+    // MOE: On Windows sockets are blocking by default.
+    if (s == -1 || setBlocking(s, false) == -1) return -1;
+#endif
 
     int rc = connect(s, (const struct sockaddr*) &addr, addr_len);
     if (rc == 0) {
+#ifndef MOE_WINDOWS
         return toggle_O_NONBLOCK(s);
+#else
+        return setBlocking(s, true);
+#endif
     } else if (rc == -1 && errno != EINPROGRESS) {
         close(s);
         return -1;
@@ -116,7 +134,11 @@ int socket_network_client_timeout(const char* host, int port, int type, int time
         return -1;
     }
 
+#ifndef MOE_WINDOWS
     return toggle_O_NONBLOCK(s);
+#else
+    return setBlocking(s, true);
+#endif
 }
 
 int socket_network_client(const char* host, int port, int type) {

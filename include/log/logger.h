@@ -22,6 +22,10 @@
 extern "C" {
 #endif
 
+#ifdef MOE_WINDOWS
+#pragma pack(push, 1)
+#endif
+
 /*
  * The userspace structure for version 1 of the logger_entry ABI.
  * This structure is returned to userspace by the kernel logger
@@ -76,6 +80,10 @@ struct logger_entry_v4 {
     char        msg[0];    /* the entry's payload */
 } __attribute__((__packed__));
 
+#ifdef MOE_WINDOWS
+#pragma pack(pop)
+#endif
+
 /*
  * The maximum size of the log entry payload that can be
  * written to the logger. An attempt to write more than
@@ -93,14 +101,18 @@ struct logger_entry_v4 {
 #define NS_PER_SEC 1000000000ULL
 
 struct log_msg {
-    union {
-        unsigned char buf[LOGGER_ENTRY_MAX_LEN + 1];
-        struct logger_entry_v4 entry;
-        struct logger_entry_v4 entry_v4;
-        struct logger_entry_v3 entry_v3;
-        struct logger_entry_v2 entry_v2;
-        struct logger_entry    entry_v1;
-    } __attribute__((aligned(4)));
+	union {
+		unsigned char buf[LOGGER_ENTRY_MAX_LEN + 1];
+		struct logger_entry_v4 entry;
+		struct logger_entry_v4 entry_v4;
+		struct logger_entry_v3 entry_v3;
+		struct logger_entry_v2 entry_v2;
+		struct logger_entry    entry_v1;
+#ifndef MOE_WINDOWS
+	} __attribute__((aligned(4)));
+#else
+	} __declspec(align(4));
+#endif
 #ifdef __cplusplus
     /* Matching log_time operators */
     bool operator== (const log_msg &T) const

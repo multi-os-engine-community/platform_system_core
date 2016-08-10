@@ -20,6 +20,10 @@
 namespace android {
 namespace base {
 
+#ifdef MOE_WINDOWS
+#pragma pack(push, 1)
+#endif
+
 // Use packed structures for access to unaligned data on targets with alignment
 // restrictions.  The compiler will generate appropriate code to access these
 // structures without generating alignment exceptions.
@@ -40,6 +44,10 @@ static inline void put_unaligned(T* address, T v) {
   unaligned* p = reinterpret_cast<unaligned*>(address);
   p->v = v;
 }
+
+#ifdef MOE_WINDOWS
+#pragma pack(pop)
+#endif
 
 } // namespace base
 } // namespace android

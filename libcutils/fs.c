@@ -148,7 +148,7 @@ fail_closed:
     return -1;
 }
 
-#ifndef __APPLE__
+#if !defined(__APPLE__)
 
 int fs_mkdirs(const char* path, mode_t mode) {
     int res = 0;

@@ -39,12 +39,18 @@ typedef enum {
 // is the same for 32 bit and 64 bit processes.
 // NOTE: Any changes to this structure must also be reflected in
 //       bionic/linker/debugger.cpp.
+#ifdef MOE_WINDOWS
+#pragma pack(push, 1)
+#endif
 typedef struct __attribute__((packed)) {
     int32_t action;
     pid_t tid;
     uint64_t abort_msg_address;
     int32_t original_si_code;
 } debugger_msg_t;
+#ifdef MOE_WINDOWS
+#pragma pack(pop)
+#endif
 
 /* Dumps a process backtrace, registers, and stack to a tombstone file (requires root).
  * Stores the tombstone path in the provided buffer.

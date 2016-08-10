@@ -17,7 +17,7 @@
 #ifndef _LIBS_CUTILS_UIO_H
 #define _LIBS_CUTILS_UIO_H
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) || defined(MOE_WINDOWS)
 
 #include <sys/uio.h>
 

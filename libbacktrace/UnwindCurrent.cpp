@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +16,17 @@
  */
 
 #include <stdint.h>
+#ifndef MOE
 #include <ucontext.h>
+#endif
 
 #include <memory>
 #include <string>
 
+#ifndef MOE_WINDOWS
 #define UNW_LOCAL_ONLY
 #include <libunwind.h>
+#endif
 
 #include <backtrace/Backtrace.h>
 
@@ -30,6 +35,7 @@
 
 std::string UnwindCurrent::GetFunctionNameRaw(uintptr_t pc, uintptr_t* offset) {
   *offset = 0;
+#ifndef MOE
   char buf[512];
   unw_word_t value;
   if (unw_get_proc_name_by_ip(unw_local_addr_space, pc, buf, sizeof(buf),
@@ -37,10 +43,12 @@ std::string UnwindCurrent::GetFunctionNameRaw(uintptr_t pc, uintptr_t* offset) {
     *offset = static_cast<uintptr_t>(value);
     return buf;
   }
+#endif
   return "";
 }
 
 void UnwindCurrent::GetUnwContextFromUcontext(const ucontext_t* ucontext) {
+#ifndef MOE
   unw_tdep_context_t* unw_context = reinterpret_cast<unw_tdep_context_t*>(&context_);
 
 #if defined(__arm__)
@@ -63,9 +71,11 @@ void UnwindCurrent::GetUnwContextFromUcontext(const ucontext_t* ucontext) {
 #else
   unw_context->uc_mcontext = ucontext->uc_mcontext;
 #endif
+#endif
 }
 
 bool UnwindCurrent::UnwindFromContext(size_t num_ignore_frames, ucontext_t* ucontext) {
+#ifndef MOE
   if (ucontext == nullptr) {
     int ret = unw_getcontext(&context_);
     if (ret < 0) {
@@ -130,4 +140,7 @@ bool UnwindCurrent::UnwindFromContext(size_t num_ignore_frames, ucontext_t* ucon
   } while (ret > 0 && num_frames < MAX_BACKTRACE_FRAMES);
 
   return true;
+#else
+  return false;
+#endif
 }

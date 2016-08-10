@@ -24,7 +24,9 @@
 extern "C" {
 #endif
 
-#if __STDC_VERSION__ < 201112L && __cplusplus < 201103L
+// MOE TODO: for some reason char16_t is not present in a MinGW environment even
+// if these conditions below are met.
+#if (__STDC_VERSION__ < 201112L && __cplusplus < 201103L) || defined(MOE_WINDOWS)
   typedef uint16_t char16_t;
 #endif
   // otherwise char16_t is a keyword with the right semantics

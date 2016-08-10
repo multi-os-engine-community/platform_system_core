@@ -23,6 +23,10 @@
 /* struct log_time is a wire-format variant of struct timespec */
 #define NS_PER_SEC 1000000000ULL
 
+#ifdef MOE_WINDOWS
+#pragma pack(push, 1)
+#endif
+
 #ifdef __cplusplus
 
 // NB: do NOT define a copy constructor. This will result in structure
@@ -165,6 +169,10 @@ typedef struct log_time {
     uint32_t tv_nsec;
 } __attribute__((__packed__)) log_time;
 
+#endif
+
+#ifdef MOE_WINDOWS
+#pragma pack(pop)
 #endif
 
 #endif /* define _LIBS_LOG_LOG_READ_H */

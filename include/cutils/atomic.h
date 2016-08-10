@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007 The Android Open Source Project
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +20,16 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#ifndef MOE
 #include <stdatomic.h>
+#else
+#include <atomic>
+#define atomic_int_least32_t std::atomic_int_least32_t
+#define memory_order_release std::memory_order_release
+#define memory_order_acquire std::memory_order_acquire
+#define memory_order_seq_cst std::memory_order_seq_cst
+#define memory_order_relaxed std::memory_order_relaxed
+#endif
 
 #ifndef ANDROID_ATOMIC_INLINE
 #define ANDROID_ATOMIC_INLINE static inline
@@ -233,5 +243,13 @@ void android_memory_barrier(void)
  */
 #define android_atomic_write android_atomic_release_store
 #define android_atomic_cmpxchg android_atomic_release_cas
+
+#ifdef MOE
+#undef atomic_int_least32_t
+#undef memory_order_release
+#undef memory_order_acquire
+#undef memory_order_seq_cst
+#undef memory_order_relaxed
+#endif
 
 #endif // ANDROID_CUTILS_ATOMIC_H

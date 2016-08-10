@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2010 The Android Open Source Project
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#if defined(MOE) && !defined(MOE_WINDOWS)
+#define __LIB_UTILS_COMPAT_H
+#endif
 
 #ifndef __LIB_UTILS_COMPAT_H
 #define __LIB_UTILS_COMPAT_H

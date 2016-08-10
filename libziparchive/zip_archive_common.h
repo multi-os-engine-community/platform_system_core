@@ -21,6 +21,10 @@
 
 #include <inttypes.h>
 
+#ifdef MOE_WINDOWS
+#pragma pack(push, 1)
+#endif
+
 // The "end of central directory" (EOCD) record. Each archive
 // contains exactly once such record which appears at the end of
 // the archive. It contains archive wide information like the
@@ -168,6 +172,10 @@ struct DataDescriptor {
   DataDescriptor() = default;
   DISALLOW_COPY_AND_ASSIGN(DataDescriptor);
 } __attribute__((packed));
+
+#ifdef MOE_WINDOWS
+#pragma pack(pop)
+#endif
 
 // mask value that signifies that the entry has a DD
 static const uint32_t kGPBDDFlagMask = 0x0008;

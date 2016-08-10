@@ -72,7 +72,7 @@ bool UTF8ToWide(const std::string& utf8, std::wstring* utf16);
 // }
 namespace utf8 {
 
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(MOE_WINDOWS)
 int open(const char* name, int flags, ...);
 int unlink(const char* name);
 #else

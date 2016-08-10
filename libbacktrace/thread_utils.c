@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +24,11 @@
 #include <sys/syscall.h>
 
 int tgkill(int tgid, int tid, int sig) {
+#ifndef MOE
   return syscall(__NR_tgkill, tgid, tid, sig);
+#else
+  return -1;
+#endif
 }
 
 #endif

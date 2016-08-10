@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 The Android Open Source Project
+ * Copyright (c) 2014-2016, Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +20,9 @@
 
 #include <pthread.h>
 #include <sys/types.h>
+#ifndef MOE
 #include <ucontext.h>
+#endif
 
 class ThreadEntry {
 public:
