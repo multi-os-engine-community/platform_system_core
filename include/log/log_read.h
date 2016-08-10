@@ -50,12 +50,12 @@ public:
     log_time()
     {
     }
-    log_time(clockid_t id)
+    log_time(clock_t/*id*/ id)
     {
         timespec T;
-        clock_gettime(id, &T);
-        tv_sec = T.tv_sec;
-        tv_nsec = T.tv_nsec;
+        //clock_gettime(id, &T);
+        tv_sec = 0;//T.tv_sec;
+        tv_nsec =0;// T.tv_nsec;
     }
     log_time(const char *T)
     {

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 The Android Open Source Project
+ * Copyright (C) 2014-2016 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,6 +95,7 @@ bool BacktraceMap::ParseLine(const char* line, backtrace_map_t* map) {
 }
 
 bool BacktraceMap::Build() {
+#ifndef MOE
 #if defined(__APPLE__)
   char cmd[sizeof(pid_t)*3 + sizeof("vmmap -w -resident -submap -allSplitLibs -interleaved ") + 1];
 #else
@@ -125,7 +127,7 @@ bool BacktraceMap::Build() {
 #else
   fclose(fp);
 #endif
-
+#endif
   return true;
 }
 

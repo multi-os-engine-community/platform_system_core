@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2007-2014 The Android Open Source Project
+ * Copyright (C) 2014-2016 Intel Corporation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,9 @@
  * limitations under the License.
  */
 #if (FAKE_LOG_DEVICE == 0)
+#ifndef MOE
 #include <endian.h>
+#endif
 #endif
 #include <errno.h>
 #include <fcntl.h>
@@ -22,7 +25,9 @@
 #include <pthread.h>
 #endif
 #include <stdarg.h>
+#ifndef MOE
 #include <stdatomic.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +57,10 @@
 #include "fake_log_device.h"
 #endif
 
+#ifdef MOE
+#include <ctype.h>
+#endif
+
 static int __write_to_log_init(log_id_t, struct iovec *vec, size_t nr);
 static int (*write_to_log)(log_id_t, struct iovec *vec, size_t nr) = __write_to_log_init;
 #if !defined(_WIN32)
@@ -63,10 +72,11 @@ static pthread_mutex_t log_init_lock = PTHREAD_MUTEX_INITIALIZER;
 #endif
 
 #if FAKE_LOG_DEVICE
+#ifndef MOE
 static int log_fds[(int)LOG_ID_MAX] = { -1, -1, -1, -1, -1 };
-#else
 static int logd_fd = -1;
 static int pstore_fd = -1;
+#endif
 #endif
 
 /*
@@ -89,6 +99,33 @@ int __android_log_dev_available(void)
 
     return (g_log_status == kLogAvailable);
 }
+
+#ifdef MOE
+static int moe_min_prio = ANDROID_LOG_DEBUG;
+static int __write_to_log_console(log_id_t log_fd __unused, struct iovec *vec, size_t nr __unused)
+{
+    int prio = *(int*)vec[0].iov_base;
+    if (prio < moe_min_prio)
+        return 0;
+
+    const char* tag = (const char*)vec[1].iov_base;
+    const char* msg = (const char*)vec[2].iov_base;
+    fprintf(stdout, "%s %d %s\n", tag, prio, msg);
+
+    return 0;
+}
+#else
+#if !FAKE_LOG_DEVICE
+/* give up, resources too limited */
+static int __write_to_log_null(log_id_t log_fd __unused, struct iovec *vec __unused,
+                               size_t nr __unused)
+{
+    return -1;
+}
+#endif
+#endif
+
+#ifndef MOE
 
 /* log_init_lock assumed */
 static int __write_to_log_initialize()
@@ -303,6 +340,7 @@ static int __write_to_log_daemon(log_id_t log_id, struct iovec *vec, size_t nr)
 
     return ret;
 }
+#endif
 
 #if FAKE_LOG_DEVICE
 static const char *LOG_NAME[LOG_ID_MAX] = {
@@ -329,6 +367,75 @@ static int __write_to_log_init(log_id_t log_id, struct iovec *vec, size_t nr)
     pthread_mutex_lock(&log_init_lock);
 #endif
 
+#ifdef MOE
+#define kMaxTagLen  16      /* from the long-dead utils/Log.cpp */
+    /*
+     * This is based on the the long-dead utils/Log.cpp code.
+     */
+    const char* tags = getenv("ANDROID_LOG_TAGS");
+    if (tags != NULL) {
+        int entry = 0;
+
+        while (*tags != '\0') {
+            char tagName[kMaxTagLen];
+            int i, minPrio;
+
+            while (isspace(*tags))
+                tags++;
+
+            i = 0;
+            while (*tags != '\0' && !isspace(*tags) && *tags != ':' &&
+                   i < kMaxTagLen)
+            {
+                tagName[i++] = *tags++;
+            }
+            if (i == kMaxTagLen) {
+                goto moe_log_init_end;
+            }
+            tagName[i] = '\0';
+
+            /* default priority, if there's no ":" part; also zero out '*' */
+            minPrio = ANDROID_LOG_VERBOSE;
+            if (tagName[0] == '*' && tagName[1] == '\0') {
+                minPrio = ANDROID_LOG_DEBUG;
+                tagName[0] = '\0';
+            }
+
+            if (*tags == ':') {
+                tags++;
+                if (*tags >= '0' && *tags <= '9') {
+                    if (*tags >= ('0' + ANDROID_LOG_SILENT))
+                        minPrio = ANDROID_LOG_VERBOSE;
+                    else
+                        minPrio = *tags - '\0';
+                } else {
+                    switch (*tags) {
+                        case 'v':   minPrio = ANDROID_LOG_VERBOSE;  break;
+                        case 'd':   minPrio = ANDROID_LOG_DEBUG;    break;
+                        case 'i':   minPrio = ANDROID_LOG_INFO;     break;
+                        case 'w':   minPrio = ANDROID_LOG_WARN;     break;
+                        case 'e':   minPrio = ANDROID_LOG_ERROR;    break;
+                        case 'f':   minPrio = ANDROID_LOG_FATAL;    break;
+                        case 's':   minPrio = ANDROID_LOG_SILENT;   break;
+                        default:    minPrio = ANDROID_LOG_DEFAULT;  break;
+                    }
+                }
+
+                tags++;
+                if (*tags != '\0' && !isspace(*tags)) {
+                    goto moe_log_init_end;
+                }
+            }
+
+            if (tagName[0] == 0) {
+                moe_min_prio = minPrio;
+            }
+        }
+    }
+moe_log_init_end:
+
+    write_to_log = __write_to_log_console;
+#else
     if (write_to_log == __write_to_log_init) {
         int ret;
 
@@ -347,6 +454,7 @@ static int __write_to_log_init(log_id_t log_id, struct iovec *vec, size_t nr)
 
         write_to_log = __write_to_log_daemon;
     }
+#endif
 
 #if !defined(_WIN32)
     pthread_mutex_unlock(&log_init_lock);

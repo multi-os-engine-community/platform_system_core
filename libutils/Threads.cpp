@@ -18,7 +18,7 @@
 #define LOG_TAG "libutils.threads"
 
 #include <assert.h>
-#include <errno.h>
+//#include <errno.h>
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -128,11 +128,11 @@ int androidCreateRawThreadEtc(android_thread_func_t entryFunction,
                                size_t threadStackSize,
                                android_thread_id_t *threadId)
 {
-    pthread_attr_t attr;
+    /*pthread_attr_t attr;
     pthread_attr_init(&attr);
     pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-#if defined(__ANDROID__)  /* valgrind is rejecting RT-priority create reqs */
+#if defined(__ANDROID__)  /* valgrind is rejecting RT-priority create reqs /
     if (threadPriority != PRIORITY_DEFAULT || threadName != NULL) {
         // Now that the pthread_t has a method to find the associated
         // android_thread_id_t (pid) from pthread_t, it would be possible to avoid
@@ -161,9 +161,9 @@ int androidCreateRawThreadEtc(android_thread_func_t entryFunction,
                     (android_pthread_entry)entryFunction, userData);
     pthread_attr_destroy(&attr);
     if (result != 0) {
-        ALOGE("androidCreateRawThreadEtc failed (entry=%p, res=%d, %s)\n"
-             "(android threadPriority=%d)",
-            entryFunction, result, strerror(errno), threadPriority);
+        //ALOGE("androidCreateRawThreadEtc failed (entry=%p, res=%d, %s)\n"
+        //     "(android threadPriority=%d)",
+        //    entryFunction, result, strerror(errno), threadPriority);
         return 0;
     }
 
@@ -172,7 +172,7 @@ int androidCreateRawThreadEtc(android_thread_func_t entryFunction,
     // or other threads also need access.
     if (threadId != NULL) {
         *threadId = (android_thread_id_t)thread; // XXX: this is not portable
-    }
+    }*/
     return 1;
 }
 
@@ -260,7 +260,7 @@ int androidCreateRawThreadEtc(android_thread_func_t fn,
                                size_t /*threadStackSize*/,
                                android_thread_id_t *threadId)
 {
-    return doCreateThread(  fn, userData, threadId);
+    return 0;//doCreateThread(  fn, userData, threadId);
 }
 
 android_thread_id_t androidGetThreadId()
@@ -275,7 +275,7 @@ android_thread_id_t androidGetThreadId()
 
 int androidCreateThread(android_thread_func_t fn, void* arg)
 {
-    return createThreadEtc(fn, arg);
+    return 0;//createThreadEtc(fn, arg);
 }
 
 int androidCreateThreadGetID(android_thread_func_t fn, void *arg, android_thread_id_t *id)
@@ -293,8 +293,8 @@ int androidCreateThreadEtc(android_thread_func_t entryFunction,
                             size_t threadStackSize,
                             android_thread_id_t *threadId)
 {
-    return gCreateThreadFn(entryFunction, userData, threadName,
-        threadPriority, threadStackSize, threadId);
+    return 0;//gCreateThreadFn(entryFunction, userData, threadName,
+        //threadPriority, threadStackSize, threadId);
 }
 
 void androidSetCreateThreadFunc(android_create_thread_fn func)

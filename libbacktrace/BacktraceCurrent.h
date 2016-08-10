@@ -19,7 +19,9 @@
 
 #include <stdint.h>
 #include <sys/types.h>
+#ifndef MOE
 #include <ucontext.h>
+#endif
 
 #include <backtrace/Backtrace.h>
 

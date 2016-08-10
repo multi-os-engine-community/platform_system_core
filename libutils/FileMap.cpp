@@ -39,7 +39,7 @@
 
 #include <string.h>
 #include <memory.h>
-#include <errno.h>
+//#include <errno.h>
 #include <assert.h>
 
 using namespace android;
@@ -190,8 +190,8 @@ bool FileMap::create(const char* origFileName, int fd, off64_t offset, size_t le
 
     ptr = mmap(NULL, adjLength, prot, flags, fd, adjOffset);
     if (ptr == MAP_FAILED) {
-        ALOGE("mmap(%lld,%zu) failed: %s\n",
-            (long long)adjOffset, adjLength, strerror(errno));
+        ALOGE("mmap(%lld,%zu) failed\n",
+            (long long)adjOffset, adjLength/*, strerror(errno)*/);
         return false;
     }
     mBasePtr = ptr;
@@ -230,7 +230,7 @@ int FileMap::advise(MapAdvice advice)
 
     cc = madvise(mBasePtr, mBaseLength, sysAdvice);
     if (cc != 0)
-        ALOGW("madvise(%d) failed: %s\n", sysAdvice, strerror(errno));
+        ALOGW("madvise(%d) failed\n", sysAdvice/*, strerror(errno)*/);
     return cc;
 }
 
@@ -240,3 +240,4 @@ int FileMap::advise(MapAdvice /* advice */)
     return -1;
 }
 #endif
+

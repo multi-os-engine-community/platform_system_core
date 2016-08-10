@@ -31,11 +31,21 @@
 #include <windows.h>
 #endif
 
+#if defined(MOE) && TARGET_OS_IPHONE
+#include <pthread.h>
+#endif
+
 // No definition needed for Android because we'll just pick up bionic's copy.
 #ifndef __ANDROID__
 pid_t gettid() {
 #if defined(__APPLE__)
+#if defined(MOE) && TARGET_OS_IPHONE
+  uint64_t val = -1;
+  pthread_threadid_np(pthread_self(), &val);
+  return (pid_t)val;
+#else
   return syscall(SYS_thread_selfid);
+#endif
 #elif defined(__linux__)
   return syscall(__NR_gettid);
 #elif defined(_WIN32)

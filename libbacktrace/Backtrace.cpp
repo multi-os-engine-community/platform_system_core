@@ -18,7 +18,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#ifndef MOE
 #include <ucontext.h>
+#endif
 
 #include <string>
 
@@ -30,10 +32,14 @@
 #include <cutils/threads.h>
 
 #include "BacktraceLog.h"
+#ifndef MOE
 #include "BacktraceOffline.h"
+#endif
 #include "thread_utils.h"
 #include "UnwindCurrent.h"
+#ifndef MOE
 #include "UnwindPtrace.h"
+#endif
 
 using android::base::StringPrintf;
 
@@ -138,11 +144,19 @@ Backtrace* Backtrace::Create(pid_t pid, pid_t tid, BacktraceMap* map) {
   if (pid == getpid()) {
     return new UnwindCurrent(pid, tid, map);
   } else {
+#ifndef MOE
     return new UnwindPtrace(pid, tid, map);
+#else
+    return nullptr;
+#endif
   }
 }
 
 Backtrace* Backtrace::CreateOffline(pid_t pid, pid_t tid, BacktraceMap* map,
                                     const backtrace_stackinfo_t& stack, bool cache_file) {
+#ifndef MOE
   return new BacktraceOffline(pid, tid, map, stack, cache_file);
+#else
+  return nullptr;
+#endif
 }

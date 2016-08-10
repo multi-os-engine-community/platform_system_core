@@ -208,7 +208,7 @@ public:
                 ALOGD("STACK TRACE for %p saved in %s", this, name);
             }
             else ALOGE("FAILED TO PRINT STACK TRACE for %p in %s: %s", this,
-                      name, strerror(errno));
+                      name, "NO ERRNO"/*strerror(errno)*/);
         }
     }
 

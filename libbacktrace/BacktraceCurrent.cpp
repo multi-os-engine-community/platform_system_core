@@ -19,9 +19,13 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/param.h>
+#ifndef MOE
 #include <sys/ptrace.h>
+#endif
 #include <sys/types.h>
+#ifndef MOE
 #include <ucontext.h>
+#endif
 #include <unistd.h>
 
 #include <string>
@@ -82,17 +86,20 @@ bool BacktraceCurrent::Unwind(size_t num_ignore_frames, ucontext_t* ucontext) {
 }
 
 bool BacktraceCurrent::DiscardFrame(const backtrace_frame_data_t& frame) {
+#ifndef MOE
   if (BacktraceMap::IsValid(frame.map)) {
     const std::string library = basename(frame.map.name.c_str());
     if (library == "libunwind.so" || library == "libbacktrace.so") {
       return true;
     }
   }
+#endif
   return false;
 }
 
 static pthread_mutex_t g_sigaction_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#ifndef MOE
 static void SignalLogOnly(int, siginfo_t*, void*) {
   BACK_LOGE("pid %d, tid %d: Received a spurious signal %d\n", getpid(), gettid(), THREAD_SIGNAL);
 }
@@ -122,8 +129,12 @@ static void SignalHandler(int, siginfo_t*, void* sigcontext) {
     BACK_LOGE("Timed out waiting for unwind thread to indicate it completed.");
   }
 }
+#endif
 
 bool BacktraceCurrent::UnwindThread(size_t num_ignore_frames) {
+#ifdef MOE
+  return false;
+#else
   // Prevent multiple threads trying to set the trigger action on different
   // threads at the same time.
   pthread_mutex_lock(&g_sigaction_mutex);
@@ -191,4 +202,5 @@ bool BacktraceCurrent::UnwindThread(size_t num_ignore_frames) {
   ThreadEntry::Remove(entry);
 
   return unwind_done;
+#endif
 }

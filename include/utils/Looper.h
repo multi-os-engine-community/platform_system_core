@@ -22,7 +22,7 @@
 #include <utils/KeyedVector.h>
 #include <utils/Timers.h>
 
-#include <sys/epoll.h>
+//#include <sys/epoll.h>
 
 namespace android {
 
